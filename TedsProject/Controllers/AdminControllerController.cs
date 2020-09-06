@@ -10,7 +10,7 @@ using TedsProject.Models;
 
 namespace TedsProject.Controllers
 {
-    [Route("api/user")]
+    [Route("api/user"), Authorize]
     public class AdminControllerController : ApiController
     {
 
@@ -46,6 +46,7 @@ namespace TedsProject.Controllers
                 return Response("", string.Join("<br/>", errors));
             }
             var response = await _adminService.Login(model);
+            
 
             return Response(response.Item1, response.Item2);
         }

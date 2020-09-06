@@ -87,6 +87,37 @@ namespace TedsProject.Services
             }
             return await Task.FromResult(false);
         }
+        
+        
+        public async Task<dynamic> GetGateStatusByTCNumber(string country, string tcnumber)
+        {
+
+            var scanCondition = new List<ScanCondition> {
+                new ScanCondition("Country", ScanOperator.Equal, country?.ToUpper()),
+                new ScanCondition("TCNUmber", ScanOperator.Equal, Int64.Parse(tcnumber))
+            };
+
+            var result = await _dbService.GetAll<CrossingsModel>(scanCondition);
+
+            return result.Select(s => new {id = s.Id, GateStatus= s.IsGateOpenString }).FirstOrDefault();
+        }
+        public async Task<dynamic> UpdateGateStatusByTCNumber(bool status, string country, string tcnumber){
+            var scanCondition = new List<ScanCondition> {
+                new ScanCondition("Country", ScanOperator.Equal, country?.ToUpper()),
+                new ScanCondition("TCNUmber", ScanOperator.Equal, Int64.Parse(tcnumber))
+            };
+
+            var items = await _dbService.GetAll<CrossingsModel>(scanCondition);
+
+            if (items != null && items.Count() > 0)
+            {
+                var item = items.FirstOrDefault();
+                item.IsGateOpen = status;
+                await _dbService.UpdateItem<CrossingsModel>(item);
+                return await Task.FromResult(true);
+            }
+            return await Task.FromResult(false);
+        }
 
         private async Task<bool> isValidKey(string key)
         {

@@ -39,7 +39,8 @@ namespace TedsProject.Services
             var result = await _dbService.GetAll<KeysDataModel>(scanCodition) ?? new List<KeysDataModel>();
             return result.Select(s => new { s.Id, s.AppKey }).FirstOrDefault();
         }
-
+        
+        
         public async Task<dynamic> SaveItem(string userId)
         {
             var item = new KeysDataModel();
@@ -59,6 +60,23 @@ namespace TedsProject.Services
             await _dbService.DeleteItem<KeysDataModel>(model);
 
             return await Task.FromResult(true);
+        }
+
+        public async Task<bool> ValidateAppKey(string key)
+        {
+            if(string.IsNullOrEmpty(key))
+                return await Task.FromResult(false);
+
+            var scanCodition = new List<ScanCondition> {
+                     new ScanCondition("AppKey", ScanOperator.Equal, key)
+                };
+
+            var result = await _dbService.GetAll<KeysDataModel>(scanCodition);
+
+            if (result?.Count() >0 && result.FirstOrDefault()?.ExpiryDate > DateTime.UtcNow)
+                return await Task.FromResult(true);
+            else
+                return await Task.FromResult(false);
         }
 
 

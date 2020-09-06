@@ -21,6 +21,9 @@ namespace TedsProject.Models
         [DynamoDBProperty("railway")]
         public string Railway { get; set; }
 
+        [DynamoDBProperty("country")]
+        public string Country { get; set; }
+
         [DynamoDBProperty("region")]
         public string Region { get; set; }
 

@@ -18,16 +18,18 @@ namespace TedsProject.Services
     public class AdminService : IAdminService
     {
         private readonly IDbService _dbService;
+        private readonly IKeysService _keysService;
         private readonly IPasswordHasher _hasher;
         private readonly IJwtFactory _jwtFactory;
         private readonly JwtIssuerOptions _jwtOptions;
 
-        public AdminService(IDbService dbService, IPasswordHasher hasher, IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions)
+        public AdminService(IDbService dbService, IPasswordHasher hasher, IJwtFactory jwtFactory, IOptions<JwtIssuerOptions> jwtOptions, IKeysService keysService)
         {
             _dbService = dbService;
             _hasher = hasher;
             _jwtFactory = jwtFactory;
             _jwtOptions = jwtOptions.Value;
+            _keysService = keysService;
         }
 
         public async Task<(dynamic, string)> Login(LoginViewModel model)
@@ -49,7 +51,9 @@ namespace TedsProject.Services
 
                     if (isAuthorized)
                     {
-                        var jwt = await Tokens.GenerateJwt(_jwtFactory, user, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.Indented });
+                        string apiKey = await GetUserAppKey(user.Id);
+                        
+                        var jwt = await Tokens.GenerateJwt(_jwtFactory, user, apiKey, _jwtOptions, new JsonSerializerSettings { Formatting = Formatting.Indented });
                         return (JsonConvert.DeserializeObject(jwt), string.Empty);
                     }
                 }
@@ -62,6 +66,20 @@ namespace TedsProject.Services
             }
 
         }
+
+        private async Task<string> GetUserAppKey(string userId)
+        {
+            var scanCodition = new List<ScanCondition> {
+                     new ScanCondition("UserId", ScanOperator.Equal, userId),
+                     new ScanCondition("ExpiryDate", ScanOperator.GreaterThanOrEqual, DateTime.UtcNow),
+                };
+
+            var result = await _dbService.GetAll<KeysDataModel>(scanCodition) ?? new List<KeysDataModel>();
+
+            return result.Select(s => new { s.Id, s.AppKey })?.FirstOrDefault()?.AppKey;
+        }
+
+
 
         public async Task<(dynamic, string)> Register(SignupViewModel model)
         {

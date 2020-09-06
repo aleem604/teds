@@ -10,5 +10,6 @@ namespace TedsProject.Interfaces
         Task<dynamic> GetAppkeyByUser(string userId);
         Task<dynamic> SaveItem(string userId);
         Task<dynamic> DeleteKey(string key);
+        Task<bool> ValidateAppKey(string key);
     }
 }

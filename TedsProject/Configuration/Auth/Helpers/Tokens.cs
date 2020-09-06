@@ -7,12 +7,13 @@ namespace TedsProject.Helpers
 {
     public class Tokens
     {
-      public static async Task<string> GenerateJwt(IJwtFactory jwtFactory, UserModel userInfo, JwtIssuerOptions jwtOptions, JsonSerializerSettings serializerSettings)
+      public static async Task<string> GenerateJwt(IJwtFactory jwtFactory, UserModel userInfo, string apiKey, JwtIssuerOptions jwtOptions, JsonSerializerSettings serializerSettings)
       {
         var response = new
         {
           id = userInfo.Id,
           accessToken = await jwtFactory.GenerateEncodedToken(userInfo),
+          apiKey = apiKey,
           expiresIn = (int)jwtOptions.ValidFor.TotalSeconds
         };
 

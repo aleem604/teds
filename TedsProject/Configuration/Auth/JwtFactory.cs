@@ -51,7 +51,7 @@ namespace TedsProject.Auth
                 new Claim(JwtRegisteredClaimNames.Sub, userInfo.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Id, userInfo.Id),
-                new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
+               // new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
                
             };
             return new ClaimsIdentity(new GenericIdentity(userInfo.Id, "Token"), claims);

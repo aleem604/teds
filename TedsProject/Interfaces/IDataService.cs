@@ -16,5 +16,8 @@ namespace TedsProject.Interfaces
         Task<dynamic> DeleteCrossing(string key);
         Task<dynamic> GetGateStatus(string id);
         Task<dynamic> UpdateGateStatus(bool isOpen, string id);
+        
+        Task<dynamic> GetGateStatusByTCNumber(string country, string tcnumber);
+        Task<dynamic> UpdateGateStatusByTCNumber(bool isOpen, string country, string tcnumber);
     }
 }
