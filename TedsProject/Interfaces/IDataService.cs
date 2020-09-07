@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,10 +10,12 @@ namespace TedsProject.Interfaces
     public interface IDataService
     {
         Task<dynamic> CreateTable();
+        Task<dynamic> UploadCrossings(IFormFile file);
         Task<dynamic> GetAll();
         Task<dynamic> GetById(string key);
         Task<dynamic> SaveItem(CrossingsModel model);
-        Task<dynamic> SearchBYLatLang(decimal lat, decimal lng, string key);
+        Task<dynamic> SearchBYLatLang(decimal lat, decimal lng);
+        Task<dynamic> SearchBYRadius(double lat, double lng, short radius);
         Task<dynamic> DeleteCrossing(string key);
         Task<dynamic> GetGateStatus(string id);
         Task<dynamic> UpdateGateStatus(bool isOpen, string id);

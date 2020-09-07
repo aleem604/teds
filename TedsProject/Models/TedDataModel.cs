@@ -37,7 +37,7 @@ namespace TedsProject.Models
         public string Regulator { get; set; }
 
         [DynamoDBProperty("mile")]
-        public decimal Mile { get; set; }
+        public decimal? Mile { get; set; }
         
         [DynamoDBProperty("subdivision")]
         public string Subdivision { get; set; }
@@ -52,10 +52,10 @@ namespace TedsProject.Models
         public string Location { get; set; }
 
         [DynamoDBProperty("latitude")]
-        public decimal Latitude { get; set; }
+        public decimal? Latitude { get; set; }
 
         [DynamoDBProperty("longitude")]
-        public decimal Longitude { get; set; }
+        public decimal? Longitude { get; set; }
 
         [DynamoDBProperty("road_authority")]
         public string RoadAuthority { get; set; }
@@ -64,40 +64,40 @@ namespace TedsProject.Models
         public string Protection { get; set; }
 
         [DynamoDBProperty("accident")]
-        public int Accident { get; set; }
+        public int? Accident { get; set; }
 
          [DynamoDBProperty("fatality")]
-        public int Fatality { get; set; }
+        public int? Fatality { get; set; }
 
         [DynamoDBProperty("injury")]
-        public int Injury { get; set; }
+        public int? Injury { get; set; }
 
         [DynamoDBProperty("total_trains_daily")]
-        public decimal TotalTrainsDaily { get; set; }
+        public decimal? TotalTrainsDaily { get; set; }
 
         [DynamoDBProperty("vehicles_daily")]
-        public decimal VehicleDaily { get; set; }
+        public decimal? VehicleDaily { get; set; }
 
         [DynamoDBProperty("trains_max")]
-        public int TrainsMax { get; set; }
+        public int? TrainsMax { get; set; }
 
         [DynamoDBProperty("road_speed")]
-        public int RoadSpeed { get; set; }
+        public int? RoadSpeed { get; set; }
 
         [DynamoDBProperty("lanes")]
-        public int Lanes { get; set; }
+        public int? Lanes { get; set; }
 
          [DynamoDBProperty("tracks")]
-        public int Tracks { get; set; }
+        public int? Tracks { get; set; }
 
         [DynamoDBProperty("urban")]
-        public bool Urban { get; set; }
+        public bool? Urban { get; set; }
 
         [DynamoDBProperty("gate_open")]
-        public bool IsGateOpen { get; set; }
+        public bool? IsGateOpen { get; set; }
 
         public string IsGateOpenString { get {
-                return this.IsGateOpen ? "Open" : "Closed";
+                return this.IsGateOpen.HasValue && this.IsGateOpen.Value == true ? "Open" : "Closed";
             }
         }
     }
