@@ -60,6 +60,7 @@ namespace TedsProject
             //Environment.SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", Configuration["AWS:SecretKey"]);
             //Environment.SetEnvironmentVariable("AWS_REGION", Configuration["AWS:Region"]);
 
+            services.AddHttpContextAccessor();
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton<IDbService, DbService>();
             services.AddSingleton<IDataService, DataService>();

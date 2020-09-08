@@ -20,7 +20,7 @@ namespace TedsProject.Controllers
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
 
-        public CrossingsController(IDataService dataService, IKeysService keysService, ILogger<CrossingsController> logger)
+        public CrossingsController(IDataService dataService, IKeysService keysService, ILogger<CrossingsController> logger, IHttpContextAccessor httpContext) : base(httpContext)
         {
             _dataService = dataService;
             _keysService = keysService;
@@ -86,6 +86,17 @@ namespace TedsProject.Controllers
             return Response(await _dataService.DeleteCrossing(key));
         }
 
+
+        [HttpGet("delete-all")]
+        public async Task<IActionResult> DeleteAllCrossing()
+        {
+            var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
+            if (!isKeyValid)
+                return Response(errorMessage: "Invalid Api Key");
+
+            return Response(await _dataService.DeleteAllCrossings());
+        }
+
         [HttpGet("search/{lat}/{lng}")]
         public async Task<IActionResult> SearchCrossing(decimal lat, decimal lng)
         {
@@ -128,8 +139,7 @@ namespace TedsProject.Controllers
             return Response(await _dataService.UpdateGateStatus(isOpen.isOpen, id));
         }
         
-        
-        
+            
         [HttpGet("get-gate-status/{country}/{tcnumber}")]
         public async Task<IActionResult> GetGateStatusByTCNumber(string country, string tcnumber)
         {
@@ -146,7 +156,6 @@ namespace TedsProject.Controllers
             var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
-
 
             return Response(await _dataService.UpdateGateStatusByTCNumber(isOpen.isOpen, country, tcnumber));
         }

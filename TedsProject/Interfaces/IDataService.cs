@@ -17,6 +17,7 @@ namespace TedsProject.Interfaces
         Task<dynamic> SearchBYLatLang(decimal lat, decimal lng);
         Task<dynamic> SearchBYRadius(double lat, double lng, short radius);
         Task<dynamic> DeleteCrossing(string key);
+        Task<dynamic> DeleteAllCrossings();
         Task<dynamic> GetGateStatus(string id);
         Task<dynamic> UpdateGateStatus(bool isOpen, string id);
         

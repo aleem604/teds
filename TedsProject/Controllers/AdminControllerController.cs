@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TedsProject.Interfaces;
@@ -17,7 +18,7 @@ namespace TedsProject.Controllers
         private readonly IAdminService _adminService;
         private readonly ILogger<AdminControllerController> _logger;
 
-        public AdminControllerController(IAdminService adminService, ILogger<AdminControllerController> logger)
+        public AdminControllerController(IAdminService adminService, ILogger<AdminControllerController> logger, IHttpContextAccessor httpContext) : base(httpContext)
         {
             _adminService = adminService;
             _logger = logger;
@@ -47,7 +48,6 @@ namespace TedsProject.Controllers
             }
             var response = await _adminService.Login(model);
             
-
             return Response(response.Item1, response.Item2);
         }
 

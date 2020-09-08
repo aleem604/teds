@@ -24,7 +24,7 @@ namespace TedsProject.Configurations
         // IMyScopedService is injected into Invoke
         public async Task Invoke(HttpContext httpContext)
         {
-            //httpContext.Items.TryAdd(eUser.TinUser, ProcessToken(httpContext));
+            httpContext.Items.TryAdd("user", ProcessToken(httpContext));
             await _next(httpContext);
         }
         private AuthClaims ProcessToken(HttpContext _httpContext)
@@ -36,10 +36,17 @@ namespace TedsProject.Configurations
                 ClaimsPrincipal user = _httpContext.User;
                 var claims = user.Claims.ToList();
 
-                var id = claims.Where(x => x.Type.StartsWith("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
-                var email = claims.Where(x => x.Type.EndsWith("nameidentifier", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault().Value.ToString();
+                var id = claims.Where(x => x.Type.StartsWith("id", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault()?.Value?.ToString();
+                var email = claims.Where(x => x.Type.EndsWith("nameidentifier", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault()?.Value?.ToString();
+                var apiKey = claims.Where(x => x.Type.Equals("apiKey", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault()?.Value?.ToString();
+                var expiry = claims.Where(x => x.Type.Equals("exp", StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault()?.Value?.ToString() ?? "0";
 
-                return new AuthClaims { Id = id, Email = email };
+                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(expiry));
+
+                if (dateTimeOffset.LocalDateTime > DateTime.UtcNow)
+                    return new AuthClaims { Id = id, Email = email, ApiKey = apiKey };
+                else
+                    return new AuthClaims();
 
                 //AuthClaims jwtPayload = JsonConvert.DeserializeObject<AuthClaims>(nameIdentifier);
 

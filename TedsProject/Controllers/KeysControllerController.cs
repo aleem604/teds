@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TedsProject.Interfaces;
@@ -13,12 +14,12 @@ namespace TedsProject.Controllers
     [Route("api/keys")]
     public class KeysControllerController : ApiController
     {
-
         private readonly IKeysService _keysService;
         private readonly ILogger<KeysControllerController> _logger;
 
-        public KeysControllerController(IKeysService keysService, ILogger<KeysControllerController> logger)
+        public KeysControllerController(IKeysService keysService, ILogger<KeysControllerController> logger,  IHttpContextAccessor httpContext): base(httpContext)
         {
+
             _keysService = keysService;
             _logger = logger;
 

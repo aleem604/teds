@@ -12,7 +12,7 @@ namespace TedsProject.Helpers
         var response = new
         {
           id = userInfo.Id,
-          accessToken = await jwtFactory.GenerateEncodedToken(userInfo),
+          accessToken = await jwtFactory.GenerateEncodedToken(userInfo, apiKey),
           apiKey = apiKey,
           expiresIn = (int)jwtOptions.ValidFor.TotalSeconds
         };

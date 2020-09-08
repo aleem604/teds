@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using TedsProject.Application;
 
 namespace TedsProject.Controllers
 {
 
     public abstract class ApiController : ControllerBase
     {
-        protected ApiController()
+        private readonly IHttpContextAccessor _httpContext;
+        protected ApiController(IHttpContextAccessor httpContext)
         {
-
+            _httpContext = httpContext;
         }
 
         protected new IActionResult Response(object result = null, string errorMessage = null)
@@ -55,16 +58,45 @@ namespace TedsProject.Controllers
             return errors.ToList();
         }
 
+        public string GetUserId
+        {
+            get
+            {
+                string userid = string.Empty;
+
+                if(_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
+                {
+                    if(claims is AuthClaims && claims !=null)
+                    {
+                        var authClaims = (AuthClaims)claims;
+                        userid = authClaims.Id;
+                    }
+                }
+             
+                return userid;
+            }
+        }
+        
         public string GetAppKey
         {
             get
             {
+                string apiKey = string.Empty;
 
-                if (Request.Headers.TryGetValue("x-api-key", out StringValues key))
+                if(_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
                 {
-                    return key.ToString();
+                    if(claims is AuthClaims && claims !=null)
+                    {
+                        var authClaims = (AuthClaims)claims;
+                        apiKey = authClaims.ApiKey;
+                    }
                 }
-                return string.Empty;
+
+                if (string.IsNullOrEmpty(apiKey) && Request.Headers.TryGetValue("x-api-key", out StringValues key))
+                {
+                    apiKey = key.ToString();
+                }
+                return apiKey;
 
             }
         }

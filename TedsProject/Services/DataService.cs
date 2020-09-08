@@ -75,7 +75,8 @@ namespace TedsProject.Services
 
         public async Task<dynamic> GetAll()
         {
-            return await _dbService.GetAll<CrossingsModel>();
+            var result = await _dbService.GetAll<CrossingsModel>();
+            return result.ToList().Take(100);
         }
 
         public async Task<dynamic> GetById(string key)
@@ -102,6 +103,16 @@ namespace TedsProject.Services
             var model = await _dbService.GetItem<CrossingsModel>(key);
             await _dbService.DeleteItem<CrossingsModel>(model);
 
+            return await Task.FromResult(true);
+        }
+
+        public async Task<dynamic> DeleteAllCrossings()
+        {
+            var models = await _dbService.GetAll<CrossingsModel>();
+            models.ToList().ForEach(async f => {
+                await _dbService.DeleteItem<CrossingsModel>(f);
+            });
+            
             return await Task.FromResult(true);
         }
 

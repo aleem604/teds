@@ -21,13 +21,13 @@ namespace TedsProject.Auth
             ThrowIfInvalidOptions(_jwtOptions);
         }
 
-        public async Task<string> GenerateEncodedToken(UserModel userInfo)
+        public async Task<string> GenerateEncodedToken(UserModel userInfo, string apiKey)
         {
            
             var jwt = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
-                claims: GenerateClaimsIdentity(userInfo).Claims,
+                claims: GenerateClaimsIdentity(userInfo, apiKey).Claims,
                 notBefore: _jwtOptions.NotBefore,
                 expires: _jwtOptions.Expiration,
                 signingCredentials: _jwtOptions.SigningCredentials);
@@ -37,8 +37,9 @@ namespace TedsProject.Auth
             return await Task.FromResult(encodedJwt);
         }
 
-        public ClaimsIdentity GenerateClaimsIdentity(UserModel userInfo)
+        public ClaimsIdentity GenerateClaimsIdentity(UserModel userInfo, string apiKey)
         {
+            apiKey ??= string.Empty;
   
             var claims = new Claim[]
             {
@@ -51,6 +52,7 @@ namespace TedsProject.Auth
                 new Claim(JwtRegisteredClaimNames.Sub, userInfo.Id),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(Helpers.Constants.Strings.JwtClaimIdentifiers.Id, userInfo.Id),
+                new Claim("apiKey", apiKey),
                // new Claim("user_info", JsonConvert.SerializeObject(userInfo)),
                
             };
