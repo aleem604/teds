@@ -63,7 +63,7 @@ namespace TedsProject.Services
 
                     });
 
-                    await this._dbService.BatchStore<CrossingsModel>(batchStore);
+                    await this._dbService.BatchStore<CrossingsModel>(batchStore.Take(500));
                 }
             }
             catch (Exception ex) { 
@@ -76,7 +76,7 @@ namespace TedsProject.Services
         public async Task<dynamic> GetAll()
         {
             var result = await _dbService.GetAll<CrossingsModel>();
-            return result.ToList().Take(100);
+            return result.ToList().Take(600);
         }
 
         public async Task<dynamic> GetById(string key)
