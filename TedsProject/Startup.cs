@@ -63,7 +63,7 @@ namespace TedsProject
             services.AddHttpContextAccessor();
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton<IDbService, DbService>();
-            services.AddSingleton<IDataService, DataService>();
+            services.AddSingleton<ICrossingsService, CrossingsService>();
             services.AddSingleton<IKeysService, KeysService>();
             services.AddSingleton<IAdminService, AdminService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();

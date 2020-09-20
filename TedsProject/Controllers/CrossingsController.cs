@@ -16,22 +16,16 @@ namespace TedsProject.Controllers
     public class CrossingsController : ApiController
     {
 
-        private readonly IDataService _dataService;
+        private readonly ICrossingsService _dataService;
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
 
-        public CrossingsController(IDataService dataService, IKeysService keysService, ILogger<CrossingsController> logger, IHttpContextAccessor httpContext) : base(httpContext)
+        public CrossingsController(ICrossingsService dataService, IKeysService keysService, ILogger<CrossingsController> logger, IHttpContextAccessor httpContext) : base(httpContext)
         {
             _dataService = dataService;
             _keysService = keysService;
             _logger = logger;
 
-        }
-
-        [HttpGet("create-table")]
-        public IActionResult Index()
-        {
-            return Response(_dataService.CreateTable());
         }
 
         [HttpPost("upload-crossings")]
@@ -40,14 +34,20 @@ namespace TedsProject.Controllers
             return Response(await _dataService.UploadCrossings(file));
         }
 
+        [HttpPost("upload-crossings-new")]
+        public async Task<IActionResult> UploadCrossingsNew(IFormFile file)
+        {
+            return Response(await _dataService.UploadCrossingsNew(file));
+        }
+
         [HttpGet("all-crossings")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string country, string tucNumber)
         {
             var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
             if(!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
-            return Response(await _dataService.GetAll());
+            return Response(await _dataService.GetAll(country, tucNumber));
         }
 
         [HttpGet("{id}")]
@@ -95,6 +95,17 @@ namespace TedsProject.Controllers
                 return Response(errorMessage: "Invalid Api Key");
 
             return Response(await _dataService.DeleteAllCrossings());
+        }
+
+
+         [HttpGet("delete-new")]
+        public async Task<IActionResult> DeleteNewCrossing()
+        {
+            var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
+            if (!isKeyValid)
+                return Response(errorMessage: "Invalid Api Key");
+
+            return Response(await _dataService.DeleteNewCrossings());
         }
 
         [HttpGet("search/{lat}/{lng}")]

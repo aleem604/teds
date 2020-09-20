@@ -14,12 +14,13 @@ namespace TedsProject.Services
     public class DbService : IDbService
     {
         public readonly DynamoDBContext _context;
+        private readonly AmazonDynamoDBClient client;
 
         public DbService(IAmazonDynamoDB client)
         {
-            var dynamo = new AmazonDynamoDBClient("AKIAR4FECMCZJLBIDAYK", "J/9gWSv4I4cg+snBLRfmVwHI8ndNx03l/WL8d4Zk", RegionEndpoint.CACentral1);
+            this.client = new AmazonDynamoDBClient("AKIAR4FECMCZJLBIDAYK", "J/9gWSv4I4cg+snBLRfmVwHI8ndNx03l/WL8d4Zk", RegionEndpoint.CACentral1);
 
-            _context = new DynamoDBContext(dynamo, new DynamoDBContextConfig
+            _context = new DynamoDBContext(this.client, new DynamoDBContextConfig
             {
 
                 ConsistentRead = true,
