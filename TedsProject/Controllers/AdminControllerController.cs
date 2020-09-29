@@ -18,7 +18,11 @@ namespace TedsProject.Controllers
         private readonly IAdminService _adminService;
         private readonly ILogger<AdminControllerController> _logger;
 
-        public AdminControllerController(IAdminService adminService, ILogger<AdminControllerController> logger, IHttpContextAccessor httpContext) : base(httpContext)
+        public AdminControllerController(
+            IAdminService adminService, 
+            ILogger<AdminControllerController> logger, 
+            IHttpContextAccessor httpContext, 
+            ILoggingService logging) : base(httpContext, logging)
         {
             _adminService = adminService;
             _logger = logger;

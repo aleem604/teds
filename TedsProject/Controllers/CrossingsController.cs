@@ -20,7 +20,11 @@ namespace TedsProject.Controllers
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
 
-        public CrossingsController(ICrossingsService dataService, IKeysService keysService, ILogger<CrossingsController> logger, IHttpContextAccessor httpContext) : base(httpContext)
+        public CrossingsController(
+            ICrossingsService dataService, 
+            IKeysService keysService, ILogger<CrossingsController> logger, 
+            IHttpContextAccessor httpContext, 
+            ILoggingService logging) : base(httpContext, logging)
         {
             _dataService = dataService;
             _keysService = keysService;

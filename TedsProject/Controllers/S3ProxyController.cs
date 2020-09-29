@@ -15,7 +15,7 @@ namespace TedsProject.Controllers
     /// <summary>
     /// ASP.NET Core controller acting as a S3 Proxy.
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("api/bucket")]
     public class S3ProxyController : ControllerBase
     {
         IAmazonS3 S3Client { get; set; }

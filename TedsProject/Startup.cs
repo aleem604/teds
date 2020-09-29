@@ -68,6 +68,7 @@ namespace TedsProject
             services.AddSingleton<IAdminService, AdminService>();
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddSingleton<IJwtFactory, JwtFactory>();
+            services.AddSingleton<ILoggingService, LoggingService>();
 
             // Add S3 to the ASP.NET Core dependency injection framework.
             services.AddAWSService<Amazon.S3.IAmazonS3>();
@@ -89,6 +90,7 @@ namespace TedsProject
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseSwagger();
+
             app.UseSwaggerUI(s =>
             {
                 s.SwaggerEndpoint("/swagger/v1/swagger.json", "Portal API v1.1");

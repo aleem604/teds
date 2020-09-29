@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using TedsProject.Application;
+using TedsProject.Interfaces;
+using TedsProject.Models;
 
 namespace TedsProject.Controllers
 {
@@ -14,9 +16,11 @@ namespace TedsProject.Controllers
     public abstract class ApiController : ControllerBase
     {
         private readonly IHttpContextAccessor _httpContext;
-        protected ApiController(IHttpContextAccessor httpContext)
+        public readonly ILoggingService _loggingService;
+        protected ApiController(IHttpContextAccessor httpContext, ILoggingService loggingService)
         {
             _httpContext = httpContext;
+            _loggingService = loggingService;
         }
 
         protected new IActionResult Response(object result = null, string errorMessage = null)
@@ -96,9 +100,31 @@ namespace TedsProject.Controllers
                 {
                     apiKey = key.ToString();
                 }
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    SaveLog();
+                }
+
+
                 return apiKey;
 
             }
         }
+
+        public void SaveLog()
+        {
+            var loggingModel = new LoggingModel();
+            var input = _httpContext.HttpContext.Connection.RemoteIpAddress.ToString();
+            var ipAddress = input.Substring(input.LastIndexOf(':') + 1);
+
+            loggingModel.IPAddress = ipAddress;
+            loggingModel.AppKey = this.GetAppKey;
+            loggingModel.UserId = this.GetUserId;
+            loggingModel.LogDate = DateTime.UtcNow;
+
+            _loggingService.SaveLog(loggingModel);
+
+        }
+
     }
 }
