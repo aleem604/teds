@@ -20,5 +20,8 @@ namespace TedsProject.Models
         
         [DynamoDBProperty("user_id")]
         public string UserId { get; set; }
+        
+        [DynamoDBProperty("method_name")]
+        public string MethodName { get; set; }
     }
 }

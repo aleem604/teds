@@ -12,17 +12,16 @@ using TedsProject.Models;
 namespace TedsProject.Controllers
 {
     [Route("api/user"), Authorize]
-    public class AdminControllerController : ApiController
+    public class AdminController : ApiController
     {
 
         private readonly IAdminService _adminService;
-        private readonly ILogger<AdminControllerController> _logger;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminControllerController(
+        public AdminController(
             IAdminService adminService, 
-            ILogger<AdminControllerController> logger, 
-            IHttpContextAccessor httpContext, 
-            ILoggingService logging) : base(httpContext, logging)
+            ILogger<AdminController> logger, 
+            IHttpContextAccessor httpContext) : base(httpContext)
         {
             _adminService = adminService;
             _logger = logger;

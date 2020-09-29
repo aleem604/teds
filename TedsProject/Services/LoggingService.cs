@@ -38,9 +38,18 @@ namespace TedsProject.Services
             return await _dbService.GetAll<LoggingModel>();
         }
 
-        public async Task SaveLog(LoggingModel loggingModel)
+        public async Task SaveLog(LoggingModel loggingModel, string methodName= "")
         {
-            await _dbService.Store<LoggingModel>(loggingModel);
+            try
+            {
+                loggingModel.MethodName = methodName;
+                await _dbService.Store<LoggingModel>(loggingModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            
         }
     }
 }

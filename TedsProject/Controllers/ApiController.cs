@@ -16,11 +16,9 @@ namespace TedsProject.Controllers
     public abstract class ApiController : ControllerBase
     {
         private readonly IHttpContextAccessor _httpContext;
-        public readonly ILoggingService _loggingService;
-        protected ApiController(IHttpContextAccessor httpContext, ILoggingService loggingService)
+        protected ApiController(IHttpContextAccessor httpContext)
         {
             _httpContext = httpContext;
-            _loggingService = loggingService;
         }
 
         protected new IActionResult Response(object result = null, string errorMessage = null)
@@ -68,28 +66,28 @@ namespace TedsProject.Controllers
             {
                 string userid = string.Empty;
 
-                if(_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
+                if (_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
                 {
-                    if(claims is AuthClaims && claims !=null)
+                    if (claims is AuthClaims && claims != null)
                     {
                         var authClaims = (AuthClaims)claims;
                         userid = authClaims.Id;
                     }
                 }
-             
+
                 return userid;
             }
         }
-        
+
         public string GetAppKey
         {
             get
             {
                 string apiKey = string.Empty;
 
-                if(_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
+                if (_httpContext.HttpContext.Items.TryGetValue("user", out object claims))
                 {
-                    if(claims is AuthClaims && claims !=null)
+                    if (claims is AuthClaims && claims != null)
                     {
                         var authClaims = (AuthClaims)claims;
                         apiKey = authClaims.ApiKey;
@@ -100,30 +98,28 @@ namespace TedsProject.Controllers
                 {
                     apiKey = key.ToString();
                 }
-                if (!string.IsNullOrEmpty(apiKey))
-                {
-                    SaveLog();
-                }
-
-
+               
                 return apiKey;
 
             }
         }
 
-        public void SaveLog()
+        public LoggingModel GetLogging
         {
-            var loggingModel = new LoggingModel();
-            var input = _httpContext.HttpContext.Connection.RemoteIpAddress.ToString();
-            var ipAddress = input.Substring(input.LastIndexOf(':') + 1);
+            get
+            {
+                var loggingModel = new LoggingModel();
+                var input = _httpContext.HttpContext.Connection.RemoteIpAddress.ToString();
+                var ipAddress = input.Substring(input.LastIndexOf(':') + 1);
 
-            loggingModel.IPAddress = ipAddress;
-            loggingModel.AppKey = this.GetAppKey;
-            loggingModel.UserId = this.GetUserId;
-            loggingModel.LogDate = DateTime.UtcNow;
-
-            _loggingService.SaveLog(loggingModel);
-
+                loggingModel.Country = "CA";
+                loggingModel.IPAddress = ipAddress;
+                loggingModel.AppKey = this.GetAppKey;
+                loggingModel.UserId = this.GetUserId;
+                loggingModel.LogDate = DateTime.UtcNow;
+                loggingModel.MethodName = (new System.Diagnostics.StackTrace()).GetFrame(1).GetMethod().Name;
+                return loggingModel;
+            }
         }
 
     }

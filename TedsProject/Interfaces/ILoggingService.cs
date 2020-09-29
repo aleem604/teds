@@ -7,6 +7,6 @@ namespace TedsProject.Interfaces
     public interface ILoggingService
     {
         Task<dynamic> GetAll(DateTime startDate, DateTime endDate);
-        Task SaveLog(LoggingModel loggingModel);
+        Task SaveLog(LoggingModel loggingModel, string methodName);
     }
 }

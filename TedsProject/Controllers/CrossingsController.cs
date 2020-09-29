@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,17 +21,18 @@ namespace TedsProject.Controllers
         private readonly ICrossingsService _dataService;
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
+        private readonly ILoggingService _logging;
 
         public CrossingsController(
             ICrossingsService dataService, 
-            IKeysService keysService, ILogger<CrossingsController> logger, 
-            IHttpContextAccessor httpContext, 
-            ILoggingService logging) : base(httpContext, logging)
+            IKeysService keysService, ILogger<CrossingsController> logger,
+             ILoggingService logging,
+        IHttpContextAccessor httpContext) : base(httpContext)
         {
             _dataService = dataService;
             _keysService = keysService;
             _logger = logger;
-
+            _logging = logging;
         }
 
         [HttpPost("upload-crossings")]
@@ -51,6 +54,7 @@ namespace TedsProject.Controllers
             if(!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"getall {country}, {tucNumber}");
             return Response(await _dataService.GetAll(country, tucNumber));
         }
 
@@ -61,22 +65,29 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"getbyid {id}");
             return Response(await _dataService.GetById(id));
         }
 
         [HttpPost]
         public async Task<IActionResult> SaveCrossing([FromBody] CrossingsModel model)
         {
+            var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
+            if (!isKeyValid)
+                return Response(errorMessage: "Invalid Api Key");
+
+            await _logging.SaveLog(GetLogging, $"SaveCrossing {model.Country} {model.TCNUmber}");
             return Response(await _dataService.SaveItem(model));
         }
 
         [HttpPut]
-        public async Task<IActionResult> UPdateCrossing([FromBody] CrossingsModel model)
+        public async Task<IActionResult> UpdateCrossing([FromBody] CrossingsModel model)
         {
             var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"UpdateCrossing {model.Country} {model.TCNUmber}");
             return Response(await _dataService.SaveItem(model));
         }
         
@@ -87,6 +98,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"DeleteCrossing {key}");
             return Response(await _dataService.DeleteCrossing(key));
         }
 
@@ -98,6 +110,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"DeleteCrossing {GetAppKey}");
             return Response(await _dataService.DeleteAllCrossings());
         }
 
@@ -109,6 +122,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"DeleteNewCrossing {GetAppKey}");
             return Response(await _dataService.DeleteNewCrossings());
         }
 
@@ -119,6 +133,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"SearchCrossing {lat}, {lng}");
             return Response(await _dataService.SearchBYLatLang(lat, lng));
         }
 
@@ -129,6 +144,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"SearchCrossingByRadius {lat}, {lng}, {radius}");
             return Response(await _dataService.SearchBYRadius(lat, lng, radius));
         }
         
@@ -140,6 +156,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"GetGateStatus {id}");
             return Response(await _dataService.GetGateStatus(id));
         }
 
@@ -150,7 +167,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
-
+            await _logging.SaveLog(GetLogging, $"UpdateGateStatus {id}, {isOpen.isOpen}");
             return Response(await _dataService.UpdateGateStatus(isOpen.isOpen, id));
         }
         
@@ -162,6 +179,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"GetGateStatusByTCNumber {country} {tcnumber}");
             return Response(await _dataService.GetGateStatusByTCNumber(country, tcnumber));
         }
 
@@ -172,6 +190,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
+            await _logging.SaveLog(GetLogging, $"UpdateGateStatusByTCNumber {isOpen.isOpen}, {country} {tcnumber}");
             return Response(await _dataService.UpdateGateStatusByTCNumber(isOpen.isOpen, country, tcnumber));
         }
     }

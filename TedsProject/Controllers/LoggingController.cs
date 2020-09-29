@@ -19,17 +19,19 @@ namespace TedsProject.Controllers
         private readonly ICrossingsService _dataService;
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
+        private readonly ILoggingService _logging;
 
         public LoggingController(
             ICrossingsService dataService, 
             IKeysService keysService, 
             ILogger<CrossingsController> logger, 
             IHttpContextAccessor httpContext, 
-            ILoggingService logging) : base(httpContext, logging)
+            ILoggingService logging) : base(httpContext)
         {
             _dataService = dataService;
             _keysService = keysService;
             _logger = logger;
+            _logging = logging;
         }
 
         [HttpGet("{startDate}/{endDate}")]
@@ -39,7 +41,7 @@ namespace TedsProject.Controllers
             if (!isKeyValid)
                 return Response(errorMessage: "Invalid Api Key");
 
-            return Response(await _loggingService.GetAll(startDate, endDate));
+            return Response(await _logging.GetAll(startDate, endDate));
         }
 
 
