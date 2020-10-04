@@ -16,19 +16,16 @@ namespace TedsProject.Controllers
     public class LoggingController : ApiController
     {
 
-        private readonly ICrossingsService _dataService;
         private readonly IKeysService _keysService;
         private readonly ILogger<CrossingsController> _logger;
         private readonly ILoggingService _logging;
 
         public LoggingController(
-            ICrossingsService dataService, 
             IKeysService keysService, 
             ILogger<CrossingsController> logger, 
             IHttpContextAccessor httpContext, 
             ILoggingService logging) : base(httpContext)
         {
-            _dataService = dataService;
             _keysService = keysService;
             _logger = logger;
             _logging = logging;

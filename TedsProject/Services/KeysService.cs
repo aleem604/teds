@@ -1,5 +1,10 @@
-﻿using Amazon.DynamoDBv2.DataModel;
+﻿using Amazon;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -10,14 +15,19 @@ using TedsProject.Models;
 
 namespace TedsProject.Services
 {
-    public class KeysService : IKeysService
+    public class KeysService : BaseService, IKeysService
     {
         private readonly IDbService _dbService;
+        public readonly DynamoDBContext _context;
+        private readonly AmazonDynamoDBClient client;
+        private const string tableName = "keys_table";
 
-        public KeysService(IDbService dbService)
+        public KeysService(IDbService dbService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
         {
+            this.client = new AmazonDynamoDBClient(AwsKey, AwsSecretKey, RegionEndpoint.CACentral1);
             _dbService = dbService;
         }
+
 
         public async Task<dynamic> GetAll()
         {

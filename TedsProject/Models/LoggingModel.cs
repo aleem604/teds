@@ -10,11 +10,13 @@ namespace TedsProject.Models
     public class LoggingModel
     {
         [DynamoDBProperty("country")]
-        public string Country { get; set; } 
+        public string Country { get; set; }
+        [DynamoDBProperty("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         [DynamoDBProperty("app_key")]
         public string AppKey { get; set; }
         [DynamoDBProperty("log_date")]
-        public DateTime LogDate { get; set; }
+        public DateTime LogDate { get; set; } = DateTime.UtcNow;
         [DynamoDBProperty("ip_address")]
         public string IPAddress { get; set; }
         

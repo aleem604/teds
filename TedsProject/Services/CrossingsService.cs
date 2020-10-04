@@ -4,7 +4,9 @@ using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using CsvHelper;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -19,18 +21,17 @@ using TedsProject.Models.Parsers;
 
 namespace TedsProject.Services
 {
-    public class CrossingsService : ICrossingsService
+    public class CrossingsService : BaseService, ICrossingsService
     {
         private readonly IDbService _dbService;
         public readonly DynamoDBContext _context;
         private readonly AmazonDynamoDBClient client;
         private const string tableName = "crossings";
 
-        public CrossingsService(IDbService dbService, IAmazonDynamoDB client)
+        public CrossingsService(IDbService dbService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
         {
-            this.client = new AmazonDynamoDBClient("AKIAR4FECMCZJLBIDAYK", "J/9gWSv4I4cg+snBLRfmVwHI8ndNx03l/WL8d4Zk", RegionEndpoint.CACentral1);
+            this.client = new AmazonDynamoDBClient(AwsKey, AwsSecretKey, RegionEndpoint.CACentral1);
             _dbService = dbService;
-
         }
 
         public async Task<dynamic> UploadCrossings(IFormFile file)
