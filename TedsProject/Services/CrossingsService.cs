@@ -24,14 +24,16 @@ namespace TedsProject.Services
     public class CrossingsService : BaseService, ICrossingsService
     {
         private readonly IDbService _dbService;
+        private readonly IErrorLogService _errorService;
         public readonly DynamoDBContext _context;
         private readonly AmazonDynamoDBClient client;
         private const string tableName = "crossings";
 
-        public CrossingsService(IDbService dbService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
+        public CrossingsService(IDbService dbService, IErrorLogService errorService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
         {
             this.client = new AmazonDynamoDBClient(AwsKey, AwsSecretKey, RegionEndpoint.CACentral1);
             _dbService = dbService;
+            _errorService = errorService;
         }
 
         public async Task<dynamic> UploadCrossings(IFormFile file)
@@ -72,9 +74,10 @@ namespace TedsProject.Services
             }
             catch (Exception ex)
             {
+                await _errorService.SaveExceptionLog(ex, "crossings uploadcrossings");
                 return Task.FromResult(false);
             }
-            return Task.FromResult(true);
+            return await Task.FromResult(true);
         }
 
         public async Task<dynamic> UploadCrossingsNew(IFormFile file)
@@ -117,9 +120,10 @@ namespace TedsProject.Services
             }
             catch (Exception ex)
             {
+                await _errorService.SaveExceptionLog(ex, "crossings uploadcrossingsnew");
                 return Task.FromResult(ex.Message);
             }
-            return Task.FromResult(true);
+            return await Task.FromResult(true);
         }
 
 
@@ -151,146 +155,240 @@ namespace TedsProject.Services
             }
             catch (Exception ex)
             {
-                return Task.FromResult(ex.Message);
+                await _errorService.SaveExceptionLog(ex, "crossings getall");
+                return await Task.FromResult(ex.Message);
             }
         }
 
 
         public async Task<dynamic> GetById(string key)
         {
-            return await _dbService.GetItemsById<CrossingsModel>(key);
+            try
+            {
+                return await _dbService.GetItemsById<CrossingsModel>(key);
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"crossings getbyid {key}");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
         public async Task<dynamic> SaveItem(CrossingsModel item)
         {
-            if (string.IsNullOrEmpty(item.Id))
+            try
             {
-                item.Id = Guid.NewGuid().ToString();
-                await _dbService.Store<CrossingsModel>(item);
+                if (string.IsNullOrEmpty(item.Id))
+                {
+                    item.Id = Guid.NewGuid().ToString();
+                    await _dbService.Store<CrossingsModel>(item);
+                }
+                else
+                {
+                    await _dbService.UpdateItem<CrossingsModel>(item);
+                }
+                return await Task.FromResult(true);
             }
-            else
+            catch (Exception ex)
             {
-                await _dbService.UpdateItem<CrossingsModel>(item);
+                await _errorService.SaveExceptionLog(ex, $"Crossings SaveItem {item.Country} {item.TCNUmber}");
+                return await Task.FromResult(ex.Message);
             }
-            return await Task.FromResult(true);
         }
 
         public async Task<dynamic> DeleteCrossing(string key)
         {
-            var model = await _dbService.GetItem<CrossingsModel>(key);
-            await _dbService.DeleteItem<CrossingsModel>(model);
+            try
+            {
+                var model = await _dbService.GetItem<CrossingsModel>(key);
+                await _dbService.DeleteItem<CrossingsModel>(model);
 
-            return await Task.FromResult(true);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings DeleteCrossing {key}");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
         public async Task<dynamic> DeleteAllCrossings()
         {
-            var models = await _dbService.GetAll<CrossingsModel>();
-            models.ToList().ForEach(async f =>
+            try
             {
-                await _dbService.DeleteItem<CrossingsModel>(f);
-            });
+                var models = await _dbService.GetAll<CrossingsModel>();
+                models.ToList().ForEach(async f =>
+                {
+                    await _dbService.DeleteItem<CrossingsModel>(f);
+                });
 
-            return await Task.FromResult(true);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings DeleteAllCrossings");
+                return await Task.FromResult(ex.Message);
+            }
         }
-         public async Task<dynamic> DeleteNewCrossings()
+        public async Task<dynamic> DeleteNewCrossings()
         {
-            var models = await _dbService.GetAll<CrossingsModelNew>();
-            models.ToList().ForEach(async f =>
+            try
             {
-                await _dbService.DeleteItem<CrossingsModelNew>(f);
-            });
+                var models = await _dbService.GetAll<CrossingsModelNew>();
+                models.ToList().ForEach(async f =>
+                {
+                    await _dbService.DeleteItem<CrossingsModelNew>(f);
+                });
 
-            return await Task.FromResult(true);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings DeleteCrossing");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
         public async Task<dynamic> SearchBYLatLang(decimal lat, decimal lng)
         {
-            var scanCondition = new List<ScanCondition> {
+            try
+            {
+                var scanCondition = new List<ScanCondition> {
                 new ScanCondition("Latitude", ScanOperator.Equal, lat),
                 new ScanCondition("Longitude", ScanOperator.LessThanOrEqual, lng)
             };
 
-            return await _dbService.GetAll<CrossingsModel>(scanCondition);
+                return await _dbService.GetAll<CrossingsModel>(scanCondition);
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings SearchBYLatLang");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
         public async Task<dynamic> SearchBYRadius(double lat, double lng, short radius)
         {
-            var crossings = await _dbService.GetAll<CrossingsModel>();
-            var center = new GeoCoordinate(lat, lng);
-            var nradius = 111320;
+            try
+            {
+                var crossings = await _dbService.GetAll<CrossingsModel>();
+                var center = new GeoCoordinate(lat, lng);
+                var nradius = 111320;
 
-            var southBound = center.CalculateDerivedPosition(nradius, -180);
-            var westBound = center.CalculateDerivedPosition(nradius, -90);
-            var eastBound = center.CalculateDerivedPosition(nradius, 90);
-            var northBound = center.CalculateDerivedPosition(nradius * radius, 0);
+                var southBound = center.CalculateDerivedPosition(nradius, -180);
+                var westBound = center.CalculateDerivedPosition(nradius, -90);
+                var eastBound = center.CalculateDerivedPosition(nradius, 90);
+                var northBound = center.CalculateDerivedPosition(nradius * radius, 0);
 
-            //return new {southBound, westBound, eastBound, northBound };       
-
-            return new { crossings = crossings.Where(x => x.Latitude <= Convert.ToDecimal(northBound.Latitude)).ToList(), northBound };
+                return new { crossings = crossings.Where(x => x.Latitude <= Convert.ToDecimal(northBound.Latitude)).ToList(), northBound };
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings SearchBYRadius {lat} {lng} {radius}");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
 
         public async Task<dynamic> GetGateStatus(string id)
         {
-            var result = await _dbService.GetItemsById<CrossingsModel>(id);
-            return result.Select(s => new { id = s.Id, GateStatus = s.IsGateOpenString }).FirstOrDefault();
+            try
+            {
+                var result = await _dbService.GetItemsById<CrossingsModel>(id);
+                return result.Select(s => new { id = s.Id, GateStatus = s.IsGateOpenString }).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings GetGateStatus {id}");
+                return await Task.FromResult(ex.Message);
+            }
         }
         public async Task<dynamic> UpdateGateStatus(bool status, string id)
         {
-            var items = await _dbService.GetItemsById<CrossingsModel>(id);
-            if (items != null && items.Count() > 0)
+            try
             {
-                var item = items.FirstOrDefault();
-                item.IsGateOpen = status;
-                await _dbService.UpdateItem<CrossingsModel>(item);
-                return await Task.FromResult(true);
+                var items = await _dbService.GetItemsById<CrossingsModel>(id);
+                if (items != null && items.Count() > 0)
+                {
+                    var item = items.FirstOrDefault();
+                    item.IsGateOpen = status;
+                    await _dbService.UpdateItem<CrossingsModel>(item);
+                    return await Task.FromResult(true);
+                }
+                return await Task.FromResult(false);
             }
-            return await Task.FromResult(false);
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings UpdateGateStatus {status} {id}");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
 
         public async Task<dynamic> GetGateStatusByTCNumber(string country, string tcnumber)
         {
-
-            var scanCondition = new List<ScanCondition> {
+            try
+            {
+                var scanCondition = new List<ScanCondition> {
                 new ScanCondition("Country", ScanOperator.Equal, country?.ToUpper()),
                 new ScanCondition("TCNUmber", ScanOperator.Equal, Int64.Parse(tcnumber))
             };
 
-            var result = await _dbService.GetAll<CrossingsModel>(scanCondition);
+                var result = await _dbService.GetAll<CrossingsModel>(scanCondition);
 
-            return result.Select(s => new { id = s.Id, GateStatus = s.IsGateOpenString }).FirstOrDefault();
+                return result.Select(s => new { id = s.Id, GateStatus = s.IsGateOpenString }).FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings GetGateStatusByTCNumber {country} {tcnumber}");
+                return await Task.FromResult(ex.Message);
+            }
         }
         public async Task<dynamic> UpdateGateStatusByTCNumber(bool status, string country, string tcnumber)
         {
-            var scanCondition = new List<ScanCondition> {
+            try
+            {
+                var scanCondition = new List<ScanCondition> {
                 new ScanCondition("Country", ScanOperator.Equal, country?.ToUpper()),
                 new ScanCondition("TCNUmber", ScanOperator.Equal, Int64.Parse(tcnumber))
             };
 
-            var items = await _dbService.GetAll<CrossingsModel>(scanCondition);
+                var items = await _dbService.GetAll<CrossingsModel>(scanCondition);
 
-            if (items != null && items.Count() > 0)
-            {
-                var item = items.FirstOrDefault();
-                item.IsGateOpen = status;
-                await _dbService.UpdateItem<CrossingsModel>(item);
-                return await Task.FromResult(true);
+                if (items != null && items.Count() > 0)
+                {
+                    var item = items.FirstOrDefault();
+                    item.IsGateOpen = status;
+                    await _dbService.UpdateItem<CrossingsModel>(item);
+                    return await Task.FromResult(true);
+                }
+                return await Task.FromResult(false);
             }
-            return await Task.FromResult(false);
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings UpdateGateStatusByTCNumber {status} {country} {tcnumber}");
+                return await Task.FromResult(ex.Message);
+            }
         }
 
         private async Task<bool> isValidKey(string key)
         {
-            var scanCondition = new List<ScanCondition> {
+            try
+            {
+                var scanCondition = new List<ScanCondition> {
                 new ScanCondition("AppKey", ScanOperator.Equal, key)
             };
 
-            var result = await _dbService.GetAll<KeysDataModel>(scanCondition) ?? new List<KeysDataModel>();
-            var item = result.Where(w => w.ExpiryDate > DateTime.UtcNow).OrderByDescending(o => o.ExpiryDate).FirstOrDefault();
+                var result = await _dbService.GetAll<KeysDataModel>(scanCondition) ?? new List<KeysDataModel>();
+                var item = result.Where(w => w.ExpiryDate > DateTime.UtcNow).OrderByDescending(o => o.ExpiryDate).FirstOrDefault();
 
-            return item != null;
+                return item != null;
+            }
+            catch (Exception ex)
+            {
+                await _errorService.SaveExceptionLog(ex, $"Crossings DeleteCrossing {key}");
+                return await Task.FromResult(false);
+            }
         }
 
         private static CrossingsModelNew GetItem(Dictionary<string, AttributeValue> item)

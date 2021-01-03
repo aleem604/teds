@@ -6,13 +6,13 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "dev1",
-    "region"      : "ca-central-1",
+    "profile"     : "seuser",
+    "region"      : "us-east-1",
     "configuration" : "Release",
     "framework"     : "netcoreapp3.1",
     "s3-prefix"     : "TedsProject/",
     "template"      : "serverless.template",
     "template-parameters" : "\"ShouldCreateBucket\"=\"true\";\"BucketName\"=\"tesdsbucket\"",
-    "s3-bucket"           : "tedsappbucket",
+    "s3-bucket"           : "selambdabucket",
     "stack-name"          : "tedsapp"
 }

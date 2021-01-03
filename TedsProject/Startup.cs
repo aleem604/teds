@@ -56,10 +56,6 @@ namespace TedsProject
 
             JWTConfiguration(services, Configuration);
 
-            //Environment.SetEnvironmentVariable("AWS_ACCESS_KEY_ID", Configuration["AWS:AccessKey"]);
-            //Environment.SetEnvironmentVariable("AWS_SECRET_ACCESS_KEY", Configuration["AWS:SecretKey"]);
-            //Environment.SetEnvironmentVariable("AWS_REGION", Configuration["AWS:Region"]);
-
             services.AddHttpContextAccessor();
             services.AddAWSService<IAmazonDynamoDB>();
             services.AddSingleton<IDbService, DbService>();
@@ -69,6 +65,7 @@ namespace TedsProject
             services.AddSingleton<IPasswordHasher, PasswordHasher>();
             services.AddSingleton<IJwtFactory, JwtFactory>();
             services.AddSingleton<ILoggingService, LoggingService>();
+            services.AddSingleton<IErrorLogService, ErrorLogService>();
 
             // Add S3 to the ASP.NET Core dependency injection framework.
             services.AddAWSService<Amazon.S3.IAmazonS3>();

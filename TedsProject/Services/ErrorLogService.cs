@@ -1,47 +1,39 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
-using CsvHelper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using NPOI.SS.Util;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using TedsProject.Extensions;
 using TedsProject.Interfaces;
 using TedsProject.Models;
-using TedsProject.Models.Parsers;
 
 namespace TedsProject.Services
 {
-    public class LoggingService :BaseService, ILoggingService
+    public class ErrorLogService : BaseService, IErrorLogService
     {
         private readonly IDbService _dbService;
         public readonly DynamoDBContext _context;
         private readonly AmazonDynamoDBClient client;
-        private const string tableName = "logging";
+        private const string tableName = "error_logging";
 
-        public LoggingService(IDbService dbService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
+        public ErrorLogService(IDbService dbService, IConfiguration config, IHttpContextAccessor httpContext, IWebHostEnvironment env) : base(httpContext, config, env)
         {
-            this.client = new AmazonDynamoDBClient(AwsKey, AwsSecretKey, RegionEndpoint.CACentral1);
+            client = new AmazonDynamoDBClient(AwsKey, AwsSecretKey, RegionEndpoint.CACentral1);
             _dbService = dbService;
         }
-
+        
         public async Task<dynamic> GetAll(DateTime startDate, DateTime endTime)
         {
             SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             dateFormatter.TimeZone = TimeZoneInfo.Utc;
             try
             {
-
                 var result = new List<dynamic>();
                 var request = new QueryRequest
                 {
@@ -70,28 +62,42 @@ namespace TedsProject.Services
             }
         }
 
-        public async Task SaveLog(LoggingModel loggingModel, string methodName = "")
+        public async Task SaveExceptionLog(Exception ex, string methodName = "")
         {
             try
             {
-                loggingModel.MethodName = methodName;
-                await _dbService.Store<LoggingModel>(loggingModel);
+                var model = new ErrorLogginModel();
+                model.UserId = GetUserId;
+                model.AppKey = GetAppKey;
+                model.MethodName = methodName;
+                model.Message = ex.Message;
+                model.InnerException = ex.FullMessage();
+                model.StackTrace = ex.StackTrace;
+
+                await _dbService.Store<ErrorLogginModel>(model);
             }
-            catch (Exception ex)
+            catch (Exception iex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine(iex);
             }
         }
 
-        private static LoggingModel GetItem(Dictionary<string, AttributeValue> item)
+       
+        private static ErrorLogginModel GetItem(Dictionary<string, AttributeValue> item)
         {
-            var model = new LoggingModel();
-            model.Country = item.ContainsKey("country") ? item["country"].S : default;
-            model.LogDate = item.ContainsKey("log_date") ? Convert.ToDateTime(item["log_date"].S) : default;
-            model.AppKey = item.ContainsKey("app_key") ? item["app_key"].S : default;
-            model.UserId = item.ContainsKey("user_id") ? item["user_id"].S : default;
-            model.IPAddress = item.ContainsKey("ip_address") ? item["ip_address"].S : default;
-            model.MethodName = item.ContainsKey("method_name") ? item["method_name"].S : default;
+            var model = new ErrorLogginModel
+            {
+                Country = item.ContainsKey("country") ? item["country"].S : default,
+                Id = item.ContainsKey("id") ? item["id"].S : default,
+                LogDate = item.ContainsKey("log_date") ? Convert.ToDateTime(item["log_date"].S) : default,
+                AppKey = item.ContainsKey("app_key") ? item["app_key"].S : default,
+                IpAddress = item.ContainsKey("ip_address") ? item["ip_address"].S : default,
+                UserId = item.ContainsKey("user_id") ? item["user_id"].S : default,
+                MethodName = item.ContainsKey("method_name") ? item["method_name"].S : default,
+                Message = item.ContainsKey("error_message") ? item["error_message"].S : default,
+                StackTrace = item.ContainsKey("stack_trace") ? item["stack_trace"].S : default,
+                InnerException = item.ContainsKey("inner_exception") ? item["inner_exception"].S : default
+            };
             return model;
         }
     }
