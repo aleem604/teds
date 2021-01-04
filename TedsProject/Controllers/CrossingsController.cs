@@ -127,7 +127,7 @@ namespace TedsProject.Controllers
         }
 
         [HttpGet("search/{lat}/{lng}")]
-        public async Task<IActionResult> SearchCrossing(decimal lat, decimal lng)
+        public async Task<IActionResult> GetSearchCrossing(decimal lat, decimal lng)
         {
             var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
             if (!isKeyValid)
@@ -137,8 +137,19 @@ namespace TedsProject.Controllers
             return Response(await _dataService.SearchBYLatLang(lat, lng));
         }
 
+        [HttpPost("search")]
+        public async Task<IActionResult> PostSearchCrossing([FromBody] SearchModel model)
+        {
+            var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
+            if (!isKeyValid)
+                return Response(errorMessage: "Invalid Api Key");
+
+            await _logging.SaveLog(GetLogging, $"SearchCrossing {model.Lat}, {model.Lng}");
+            return Response(await _dataService.SearchBYLatLang(model.Lat, model.Lng));
+        }
+
         [HttpGet("search/{lat}/{lng}/{radius}")]
-        public async Task<IActionResult> SearchCrossingByRadius(double lat, double lng, short radius = 10)
+        public async Task<IActionResult> SearchCrossingByRadius(double lat, double lng, int radius = 10)
         {
             var isKeyValid = await _keysService.ValidateAppKey(GetAppKey);
             if (!isKeyValid)
@@ -199,4 +210,11 @@ namespace TedsProject.Controllers
     {
         public bool isOpen { get; set; }
     }
+
+    public class SearchModel
+    {
+        public decimal Lat { get; set; }
+        public decimal Lng { get; set; }
+    }
+
 }

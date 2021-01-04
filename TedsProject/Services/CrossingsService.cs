@@ -267,20 +267,49 @@ namespace TedsProject.Services
             }
         }
 
-        public async Task<dynamic> SearchBYRadius(double lat, double lng, short radius)
+        //public async Task<dynamic> SearchBYRadius(double lat, double lng, int radius)
+        //{
+        //    try
+        //    {
+        //        var crossings = await _dbService.GetAll<CrossingsModel>();
+        //        var center = new GeoCoordinate(lat, lng);
+        //        var nradius = 111320;
+
+        //        var southBound = center.CalculateDerivedPosition(nradius, -180);
+        //        var westBound = center.CalculateDerivedPosition(nradius, -90);
+        //        var eastBound = center.CalculateDerivedPosition(nradius, 90);
+        //        var northBound = center.CalculateDerivedPosition(nradius * radius, 0);
+
+        //        return new { crossings = crossings.Where(x => x.Latitude <= Convert.ToDecimal(northBound.Latitude)).ToList(), northBound };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _errorService.SaveExceptionLog(ex, $"Crossings SearchBYRadius {lat} {lng} {radius}");
+        //        return await Task.FromResult(ex.Message);
+        //    }
+        //}
+
+
+        /// <param name="lat"></param>
+        /// <param name="lng"></param>
+        /// <param name="radius">KM</param>
+        /// verified by https://www.geodatasource.com/distance-calculator
+        /// <returns></returns>
+        public async Task<dynamic> SearchBYRadius(double lat, double lng, int radius)
         {
             try
             {
                 var crossings = await _dbService.GetAll<CrossingsModel>();
-                var center = new GeoCoordinate(lat, lng);
-                var nradius = 111320;
+                var records = new List<CrossingsModel>();
+                foreach (var crossing in crossings)
+                {
+                    var distance = new Coordinates(lat, lng).DistanceTo(new Coordinates(Convert.ToDouble(crossing.Latitude), Convert.ToDouble(crossing.Longitude)),UnitOfLength.Kilometers);
 
-                var southBound = center.CalculateDerivedPosition(nradius, -180);
-                var westBound = center.CalculateDerivedPosition(nradius, -90);
-                var eastBound = center.CalculateDerivedPosition(nradius, 90);
-                var northBound = center.CalculateDerivedPosition(nradius * radius, 0);
+                    if (distance <= radius)
+                        records.Add(crossing);
+                }
 
-                return new { crossings = crossings.Where(x => x.Latitude <= Convert.ToDecimal(northBound.Latitude)).ToList(), northBound };
+                return new { crossings = records };
             }
             catch (Exception ex)
             {
@@ -288,6 +317,7 @@ namespace TedsProject.Services
                 return await Task.FromResult(ex.Message);
             }
         }
+
 
 
         public async Task<dynamic> GetGateStatus(string id)
@@ -425,6 +455,53 @@ namespace TedsProject.Services
             return model;
         }
 
+        public double gpsCordDistance(double pointLat, double pointLon, double locLat, double locLon)
+        {
+            double R = 6371; // Earth Radius kilometers
+            double dLat = degreesToRadians(pointLat - locLat);
+            double dLon = degreesToRadians(pointLon - locLon);
+            double lat1 = degreesToRadians(locLat);
+            double lat2 = degreesToRadians(pointLat);
+
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            double d = R * c;
+
+            return d;
+        }
+
+        public double DistanceTo(double lat1, double lon1, double lat2, double lon2, char unit = 'K')
+        {
+            double rlat1 = Math.PI * lat1 / 180;
+            double rlat2 = Math.PI * lat2 / 180;
+            double theta = lon1 - lon2;
+            double rtheta = Math.PI * theta / 180;
+            double dist =
+                Math.Sin(rlat1) * Math.Sin(rlat2) + Math.Cos(rlat1) *
+                Math.Cos(rlat2) * Math.Cos(rtheta);
+            dist = Math.Acos(dist);
+            dist = dist * 180 / Math.PI;
+            dist = dist * 60 * 1.1515;
+
+            switch (unit)
+            {
+                case 'K': //Kilometers -> default
+                    return dist * 1.609344;
+                case 'N': //Nautical Miles 
+                    return dist * 0.8684;
+                case 'M': //Miles
+                    return dist;
+            }
+
+            return dist;
+        }
+
+        private double degreesToRadians(double degrees)
+        {
+            double radians = (Math.PI / 180) * degrees;
+            return (radians);
+        }
 
     }
 }

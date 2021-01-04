@@ -15,7 +15,7 @@ namespace TedsProject.Interfaces
         Task<dynamic> GetById(string key);
         Task<dynamic> SaveItem(CrossingsModel model);
         Task<dynamic> SearchBYLatLang(decimal lat, decimal lng);
-        Task<dynamic> SearchBYRadius(double lat, double lng, short radius);
+        Task<dynamic> SearchBYRadius(double lat, double lng, int radius);
         Task<dynamic> DeleteCrossing(string key);
         Task<dynamic> DeleteAllCrossings();
         Task<dynamic> DeleteNewCrossings();
